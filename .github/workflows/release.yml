@@ -93,13 +93,16 @@ jobs:
           Copy-Item $apk.FullName "dist/ServerRemote.App-android-${{ steps.ver.outputs.version }}.apk"
 
       # --- ServerRemote.App : Windows (unpackaged, self-contained) ---
+      # MAUI/WinUI must use RuntimeIdentifierOverride instead of -r; passing
+      # -r win-x64 makes the build resolve a non-existent Mono runtime pack
+      # (Microsoft.NETCore.App.Runtime.Mono.win-x64) and fail to restore.
       - name: Publish App (Windows)
         shell: pwsh
         run: >
           dotnet publish src/ServerRemote.App
           -f net10.0-windows10.0.19041.0
           -c Release
-          -r ${{ env.WIN_RID }}
+          -p:RuntimeIdentifierOverride=win10-x64
           --self-contained
           -p:WindowsPackageType=None
           -o publish/app-windows
