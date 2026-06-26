@@ -303,6 +303,9 @@ public sealed partial class NanoKvmViewModel : ObservableObject
     private Task ScrollDown() => Hid.ScrollAsync(-1);
 
     // Special keys of the on-screen keyboard.
+    // Windows/Meta key pressed on its own (e.g. open the Start menu).
+    public Task SendWindowsKeyAsync() => Hid.SendKeyAsync(0, false, false, false, meta: true);
+
     [RelayCommand] private Task KeyEnter() => SendRawKeyAsync(HidKeys.Enter);
     [RelayCommand] private Task KeyBackspace() => SendRawKeyAsync(HidKeys.Backspace);
     [RelayCommand] private Task KeyTab() => SendRawKeyAsync(HidKeys.Tab);
