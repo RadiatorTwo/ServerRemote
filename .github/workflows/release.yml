@@ -41,16 +41,24 @@ jobs:
       - name: Install MAUI workloads
         run: dotnet workload install maui-android maui-windows
 
-      # The tag without a leading "v" makes nicer file names (v1.4 -> 1.4),
-      # but falls back to the raw tag if it doesn't start with "v".
+      # Derives three values from the tag:
+      #   tag      -> raw tag (e.g. v1.0.1), used for asset upload
+      #   version  -> versionName / display version (1.0.1), used in file names
+      #   code     -> Android versionCode, a strictly increasing integer
+      #               computed as major*10000 + minor*100 + patch (1.0.1 -> 10001).
+      #               Android refuses updates unless versionCode increases.
       - name: Resolve version from tag
         id: ver
         shell: pwsh
         run: |
           $tag = "${{ github.event.release.tag_name }}"
           $version = $tag -replace '^v', ''
+          $parts = ($version -split '[.-]')
+          $major = [int]($parts[0]); $minor = [int]($parts[1]); $patch = [int]($parts[2])
+          $code = $major * 10000 + $minor * 100 + $patch
           "tag=$tag"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "code=$code"       | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       # Decode the base64 keystore secret into a real file for signing.
       - name: Decode Android keystore
@@ -77,6 +85,8 @@ jobs:
           -f net10.0-android
           -c Release
           -t:Rebuild
+          -p:ApplicationDisplayVersion=${{ steps.ver.outputs.version }}
+          -p:ApplicationVersion=${{ steps.ver.outputs.code }}
           -p:AndroidKeyStore=true
           "-p:AndroidSigningKeyStore=${{ steps.keystore.outputs.path }}"
           "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
@@ -105,6 +115,8 @@ jobs:
           -p:RuntimeIdentifierOverride=win10-x64
           --self-contained
           -p:WindowsPackageType=None
+          -p:ApplicationDisplayVersion=${{ steps.ver.outputs.version }}
+          -p:ApplicationVersion=${{ steps.ver.outputs.code }}
           -o publish/app-windows
 
       # --- ServerRemote.Service : Windows ---
