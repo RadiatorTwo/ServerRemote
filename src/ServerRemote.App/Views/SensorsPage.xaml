@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.SensorsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    xmlns:comp="clr-namespace:ServerRemote.App.Components"
+    xmlns:c="clr-namespace:ServerRemote.Contracts;assembly=ServerRemote.Contracts"
+    x:DataType="vm:SensorsViewModel"
+    Title="Sensors">
+
+    <RefreshView IsRefreshing="{Binding Monitor.IsRefreshing}" Command="{Binding Monitor.ManualRefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="1000" HorizontalOptions="Fill">
+
+                <Label Text="Sensors" Style="{StaticResource SectionTitle}" />
+
+                <!-- Empty state when Argus is unavailable (no active button) -->
+                <comp:EmptyStateCard
+                    IsVisible="{Binding IsUnavailable}"
+                    Title="ARGUS MONITOR"
+                    StatusText="Not set up"
+                    Description="Connect Argus Monitor to display temperatures, fans and sensor values." />
+
+                <!-- Temperatures -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasTemperatures}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="TEMPERATURES" Style="{StaticResource CardTitle}" />
+                        <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding Temperatures}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="c:ArgusSensorDto">
+                                    <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+                                        <Label Grid.Column="0" Text="{Binding Label}" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding Value, StringFormat='{0:0.0}'}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Fans -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasFanSpeeds}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="FANS" Style="{StaticResource CardTitle}" />
+                        <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding FanSpeeds}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="c:ArgusSensorDto">
+                                    <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+                                        <Label Grid.Column="0" Text="{Binding Label}" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding Value, StringFormat='{0:0}'}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Load -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasLoads}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="LOAD" Style="{StaticResource CardTitle}" />
+                        <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding Loads}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="c:ArgusSensorDto">
+                                    <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+                                        <Label Grid.Column="0" Text="{Binding Label}" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding Value, StringFormat='{0:0.0}'}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

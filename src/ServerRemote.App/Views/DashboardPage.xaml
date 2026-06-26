@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    xmlns:comp="clr-namespace:ServerRemote.App.Components"
+    x:DataType="vm:DashboardViewModel"
+    Title="Dashboard">
+
+    <RefreshView IsRefreshing="{Binding Monitor.IsRefreshing}" Command="{Binding Monitor.ManualRefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="14" MaximumWidthRequest="1200" HorizontalOptions="Fill">
+
+                <!-- Connection status -->
+                <comp:StatusHeader Monitor="{Binding Monitor}" />
+
+                <!-- System cards (adaptive: side by side on desktop, stacked on mobile) -->
+                <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Stretch" JustifyContent="SpaceBetween">
+
+                    <comp:MetricCard
+                        FlexLayout.Basis="{OnIdiom Phone=100%, Default=49%}"
+                        Margin="0,0,0,12"
+                        Title="CPU USAGE"
+                        Value="{Binding Monitor.CpuPercent, StringFormat='{0:0} %'}"
+                        Caption="Total usage"
+                        Status="{Binding CpuStatus}"
+                        ShowProgress="True"
+                        Progress="{Binding Monitor.CpuPercent, Converter={StaticResource PercentToFraction}}" />
+
+                    <comp:MetricCard
+                        FlexLayout.Basis="{OnIdiom Phone=100%, Default=49%}"
+                        Margin="0,0,0,12"
+                        Title="MEMORY"
+                        Value="{Binding Monitor.RamUsedPercent, StringFormat='{0:0} %'}"
+                        Caption="{Binding RamCaption}"
+                        Status="{Binding RamStatus}"
+                        ShowProgress="True"
+                        Progress="{Binding Monitor.RamUsedPercent, Converter={StaticResource PercentToFraction}}" />
+
+                    <!-- Configurable Argus sensors: temperature + power (only when selected & available) -->
+                    <comp:MetricCard
+                        FlexLayout.Basis="{OnIdiom Phone=100%, Default=49%}"
+                        Margin="0,0,0,12"
+                        IsVisible="{Binding Monitor.HasTemperatureSensor}"
+                        Title="TEMPERATURE"
+                        Value="{Binding Monitor.TemperatureValueText}"
+                        Caption="{Binding Monitor.TemperatureCaption}"
+                        ShowStatus="False"
+                        ShowProgress="False" />
+
+                    <comp:MetricCard
+                        FlexLayout.Basis="{OnIdiom Phone=100%, Default=49%}"
+                        Margin="0,0,0,12"
+                        IsVisible="{Binding Monitor.HasPowerSensor}"
+                        Title="POWER"
+                        Value="{Binding Monitor.PowerValueText}"
+                        Caption="{Binding Monitor.PowerCaption}"
+                        ShowStatus="False"
+                        ShowProgress="False" />
+
+                </FlexLayout>
+
+                <!-- Critical drives (only when present) -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasCriticalDrives}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="CRITICAL DRIVES" Style="{StaticResource CardTitle}" />
+                        <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding CriticalDrives}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DriveItemViewModel">
+                                    <comp:StorageBar />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Critical services -->
+                <comp:SectionHeader Title="Services"
+                                    ActionText="Show all"
+                                    ActionCommand="{Binding GoToServicesCommand}" />
+
+                <Label Text="{Binding ServicesSummary}" Style="{StaticResource MetricCaption}" Margin="2,-6,2,0" />
+
+                <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding CriticalServices}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ServiceItemViewModel">
+                            <comp:ServiceCard />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- Argus / sensors empty state -->
+                <comp:EmptyStateCard
+                    IsVisible="{Binding ArgusUnavailable}"
+                    Title="ARGUS MONITOR"
+                    StatusText="Not set up"
+                    Description="Connect Argus Monitor to display temperatures, fans and sensor values." />
+
+                <!-- Danger zone -->
+                <comp:DangerZone Monitor="{Binding Monitor}" Margin="0,4,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

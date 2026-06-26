@@ -1,0 +1,26 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+.vs/
+.idea/
+
+## Build output
+[Pp]ublish/
+artifacts/
+
+## MAUI / mobile
+*.binlog
+*.apk
+*.aab
+
+## Secrets — never commit
+appsettings.*.Local.json
+secrets.json
+*.keystore
+*.jks
+*.pfx
+
+## Logs
+logs/
+*.log

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.StoragePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    xmlns:comp="clr-namespace:ServerRemote.App.Components"
+    x:DataType="vm:StorageViewModel"
+    Title="Storage">
+
+    <RefreshView IsRefreshing="{Binding Monitor.IsRefreshing}" Command="{Binding Monitor.ManualRefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="1000" HorizontalOptions="Fill">
+
+                <Label Text="Storage" Style="{StaticResource SectionTitle}" />
+                <Label Text="Drives sorted by usage — critical ones first."
+                       Style="{StaticResource MetricCaption}" Margin="2,-6,2,0" />
+
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasDrives}">
+                    <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding Drives}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DriveItemViewModel">
+                                <comp:StorageBar />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </Border>
+
+                <comp:EmptyStateCard
+                    IsVisible="{Binding IsEmpty}"
+                    Title="STORAGE"
+                    StatusText="No data"
+                    Description="No drive data received yet. Check the connection in the settings." />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

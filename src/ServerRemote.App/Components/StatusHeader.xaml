@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="ServerRemote.App.Components.StatusHeader"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+    <Border Style="{StaticResource Card}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" RowSpacing="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Status dot -->
+            <Ellipse Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                     WidthRequest="16" HeightRequest="16"
+                     VerticalOptions="Center"
+                     Fill="{Binding Monitor.ServerReachable, Source={x:Reference Root}, Converter={StaticResource BoolToColor}}" />
+
+            <Label Grid.Row="0" Grid.Column="1"
+                   Text="{Binding Monitor.StatusText, Source={x:Reference Root}}"
+                   TextColor="{StaticResource TextPrimary}"
+                   FontSize="18"
+                   FontAttributes="Bold" />
+
+            <Label Grid.Row="1" Grid.Column="1"
+                   Text="{Binding Monitor.LastUpdated, Source={x:Reference Root}, StringFormat='Last updated {0:HH:mm:ss}'}"
+                   Style="{StaticResource MetricCaption}" />
+
+            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                    Text="Reconnect"
+                    Command="{Binding Monitor.ReconnectCommand, Source={x:Reference Root}}"
+                    Style="{StaticResource NeutralButton}"
+                    Padding="14,8"
+                    MinimumHeightRequest="40"
+                    FontSize="13"
+                    VerticalOptions="Center" />
+        </Grid>
+    </Border>
+</ContentView>

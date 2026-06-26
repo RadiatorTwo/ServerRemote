@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    x:DataType="vm:SettingsViewModel"
+    Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="700" HorizontalOptions="Fill">
+
+            <Label Text="Settings" Style="{StaticResource SectionTitle}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+
+                    <Label Text="SERVER CONNECTION" Style="{StaticResource CardTitle}" />
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Host / IP address" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding Host}" Placeholder="192.168.1.10" Keyboard="Url" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Port" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding Port}" Placeholder="9443" Keyboard="Numeric" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="API-Key" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding ApiKey}" Placeholder="Bearer-Token" IsPassword="True" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Certificate fingerprint (SHA-256, optional)" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding CertFingerprint}" Placeholder="Empty = accept any certificate" />
+                        </Border>
+                        <Label Text="Leave empty for a private LAN. For pinning, enter the fingerprint logged by the service."
+                               Style="{StaticResource MetricCaption}" />
+                    </VerticalStackLayout>
+
+                    <Button Text="Save" Command="{Binding SaveCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            MinimumHeightRequest="48"
+                            HorizontalOptions="Start" />
+
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="{StaticResource Success}"
+                           FontAttributes="Bold"
+                           IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmpty}}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Dashboard sensors (Argus): freely selectable temperature + power -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+
+                    <Label Text="DASHBOARD SENSORS" Style="{StaticResource CardTitle}" />
+                    <Label Text="Two Argus sensors that are additionally shown below CPU and RAM. The selection fills up as soon as the server is connected with Argus Monitor active."
+                           Style="{StaticResource MetricCaption}" />
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Temperature sensor" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Picker ItemsSource="{Binding TemperatureSensors}"
+                                    SelectedItem="{Binding SelectedTemperatureSensor}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Power sensor" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Picker ItemsSource="{Binding PowerSensors}"
+                                    SelectedItem="{Binding SelectedPowerSensor}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

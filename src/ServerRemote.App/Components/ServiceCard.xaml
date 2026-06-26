@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="ServerRemote.App.Components.ServiceCard"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    x:DataType="vm:ServiceItemViewModel">
+    <Border Style="{StaticResource CardElevated}" Margin="0,4">
+        <VerticalStackLayout Spacing="12">
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0"
+                       Text="{Binding DisplayName}"
+                       TextColor="{StaticResource TextPrimary}"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center" />
+
+                <!-- Status badge -->
+                <Border Grid.Column="1"
+                        BackgroundColor="{Binding StatusColor}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="10,4"
+                        VerticalOptions="Center">
+                    <Label Text="{Binding StateText}" Style="{StaticResource StatusBadge}" />
+                </Border>
+            </Grid>
+
+            <!-- Status-dependent actions -->
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Start"
+                        Command="{Binding StartCommand}"
+                        IsVisible="{Binding CanStart}"
+                        Style="{StaticResource PrimaryButton}"
+                        MinimumHeightRequest="48" />
+                <Button Text="Stop"
+                        Command="{Binding StopCommand}"
+                        IsVisible="{Binding CanStopOrRestart}"
+                        Style="{StaticResource NeutralButton}"
+                        MinimumHeightRequest="48" />
+                <Button Text="Restart"
+                        Command="{Binding RestartCommand}"
+                        IsVisible="{Binding CanStopOrRestart}"
+                        Style="{StaticResource NeutralButton}"
+                        MinimumHeightRequest="48" />
+                <Label Text="Not installed — set it up in the server configuration."
+                       IsVisible="{Binding IsNotInstalled}"
+                       Style="{StaticResource MetricCaption}"
+                       VerticalOptions="Center" />
+
+                <!-- Progress indicator while an action is running -->
+                <ActivityIndicator IsVisible="{Binding IsBusy}"
+                                   IsRunning="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   WidthRequest="22" HeightRequest="22"
+                                   VerticalOptions="Center" />
+                <Label Text="{Binding BusyText}"
+                       IsVisible="{Binding IsBusy}"
+                       Style="{StaticResource MetricCaption}"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

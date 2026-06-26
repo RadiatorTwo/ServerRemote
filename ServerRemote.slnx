@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ServerRemote.App/ServerRemote.App.csproj" />
+    <Project Path="src/ServerRemote.Contracts/ServerRemote.Contracts.csproj" />
+    <Project Path="src/ServerRemote.Service/ServerRemote.Service.csproj" />
+    <Project Path="src/ServerRemote.Tray/ServerRemote.Tray.csproj" />
+  </Folder>
+</Solution>

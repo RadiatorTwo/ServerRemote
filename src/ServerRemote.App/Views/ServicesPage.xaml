@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.ServicesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    xmlns:comp="clr-namespace:ServerRemote.App.Components"
+    x:DataType="vm:ServicesViewModel"
+    Title="Services">
+
+    <RefreshView IsRefreshing="{Binding Monitor.IsRefreshing}" Command="{Binding Monitor.ManualRefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="1200" HorizontalOptions="Fill">
+
+                <Label Text="Services" Style="{StaticResource SectionTitle}" />
+
+                <!-- ===== Mobile: cards ===== -->
+                <VerticalStackLayout IsVisible="{OnIdiom Phone=True, Default=False}"
+                                     Spacing="0"
+                                     BindableLayout.ItemsSource="{Binding Monitor.Services}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ServiceItemViewModel">
+                            <comp:ServiceCard />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- ===== Desktop: table ===== -->
+                <Border Style="{StaticResource Card}" IsVisible="{OnIdiom Phone=False, Default=True}" Padding="0">
+                    <VerticalStackLayout Spacing="0">
+
+                        <!-- Header row -->
+                        <Grid ColumnDefinitions="*,160,Auto" Padding="16,12" BackgroundColor="{StaticResource SurfaceElevated}">
+                            <Label Grid.Column="0" Text="SERVICE" Style="{StaticResource CardTitle}" />
+                            <Label Grid.Column="1" Text="STATUS" Style="{StaticResource CardTitle}" />
+                            <Label Grid.Column="2" Text="ACTIONS" Style="{StaticResource CardTitle}" />
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="0" BindableLayout.ItemsSource="{Binding Monitor.Services}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ServiceItemViewModel">
+                                    <Grid ColumnDefinitions="*,160,Auto" Padding="16,10" ColumnSpacing="8">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding DisplayName}"
+                                               TextColor="{StaticResource TextPrimary}"
+                                               FontSize="15"
+                                               VerticalOptions="Center" />
+
+                                        <Border Grid.Column="1"
+                                                BackgroundColor="{Binding StatusColor}"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 8"
+                                                Padding="10,4"
+                                                HorizontalOptions="Start"
+                                                VerticalOptions="Center">
+                                            <Label Text="{Binding StateText}" Style="{StaticResource StatusBadge}" />
+                                        </Border>
+
+                                        <HorizontalStackLayout Grid.Column="2" Spacing="8" HorizontalOptions="End">
+                                            <Button Text="Start"
+                                                    Command="{Binding StartCommand}"
+                                                    IsVisible="{Binding CanStart}"
+                                                    Style="{StaticResource PrimaryButton}"
+                                                    Padding="14,6" MinimumHeightRequest="40" FontSize="13" />
+                                            <Button Text="Stop"
+                                                    Command="{Binding StopCommand}"
+                                                    IsVisible="{Binding CanStopOrRestart}"
+                                                    Style="{StaticResource NeutralButton}"
+                                                    Padding="14,6" MinimumHeightRequest="40" FontSize="13" />
+                                            <Button Text="Restart"
+                                                    Command="{Binding RestartCommand}"
+                                                    IsVisible="{Binding CanStopOrRestart}"
+                                                    Style="{StaticResource NeutralButton}"
+                                                    Padding="14,6" MinimumHeightRequest="40" FontSize="13" />
+                                            <Label Text="—"
+                                                   IsVisible="{Binding IsNotInstalled}"
+                                                   Style="{StaticResource MetricCaption}"
+                                                   VerticalOptions="Center" />
+
+                                            <!-- Progress indicator while an action is running -->
+                                            <ActivityIndicator IsVisible="{Binding IsBusy}"
+                                                               IsRunning="{Binding IsBusy}"
+                                                               Color="{StaticResource Primary}"
+                                                               WidthRequest="20" HeightRequest="20"
+                                                               VerticalOptions="Center" />
+                                            <Label Text="{Binding BusyText}"
+                                                   IsVisible="{Binding IsBusy}"
+                                                   Style="{StaticResource MetricCaption}"
+                                                   VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <comp:EmptyStateCard
+                    IsVisible="{Binding IsEmpty}"
+                    Title="SERVICES"
+                    StatusText="No data"
+                    Description="No services received yet. Check the connection in the settings." />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

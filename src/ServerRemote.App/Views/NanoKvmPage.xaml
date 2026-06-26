@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.NanoKvmPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    xmlns:models="clr-namespace:ServerRemote.App.Models"
+    xmlns:comp="clr-namespace:ServerRemote.App.Components"
+    x:DataType="vm:NanoKvmViewModel"
+    x:Name="Root"
+    Title="NanoKVM">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header + live image deliberately OUTSIDE the RefreshView: this way a swipe on the
+             stream can never trigger pull-to-refresh. The rest of the content below stays refreshable. -->
+        <VerticalStackLayout Grid.Row="0" Padding="16,16,16,0" Spacing="12" MaximumWidthRequest="900" HorizontalOptions="Fill">
+
+                <!-- Live image (title/settings removed: title is in the navbar, settings in the flyout menu) -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid BackgroundColor="Black" MinimumHeightRequest="200">
+                            <!-- Hardware H.264 decoder (native handler per platform), flicker-free. -->
+                            <comp:KvmVideoView Source="{Binding Stream}" />
+                            <ActivityIndicator IsRunning="{Binding IsConnecting}"
+                                               IsVisible="{Binding IsConnecting}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                            <!-- Input overlay: active as soon as the HID connection is established.
+                                 AspectRatio ensures letterbox-correct mouse mapping. -->
+                            <comp:KvmInputSurface x:Name="InputSurface"
+                                                  Hid="{Binding Hid}"
+                                                  IsActive="{Binding InputConnected}"
+                                                  AspectRatio="{Binding VideoAspect}"
+                                                  RelativeMode="{Binding RelativeMouseMode}" />
+                        </Grid>
+
+                        <Label Text="{Binding StreamError}" TextColor="{StaticResource Danger}"
+                               IsVisible="{Binding StreamError, Converter={StaticResource StringNotEmpty}}" />
+
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{Binding StreamButtonText}" Command="{Binding ToggleStreamCommand}"
+                                    Style="{StaticResource PrimaryButton}" />
+                            <Button Grid.Column="1" Text="Fullscreen" Command="{Binding OpenFullscreenCommand}"
+                                    Style="{StaticResource NeutralButton}" />
+                            <Button Grid.Column="2" Text="Wake up" Command="{Binding WakeDisplayCommand}"
+                                    Style="{StaticResource NeutralButton}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Remaining, scrollable content — pull-to-refresh works here. -->
+            <RefreshView x:Name="StreamRefresh" Grid.Row="1"
+                         IsRefreshing="{Binding Monitor.IsRefreshing}" Command="{Binding Monitor.ManualRefreshCommand}">
+                <ScrollView>
+                    <VerticalStackLayout Padding="16,12,16,16" Spacing="12" MaximumWidthRequest="900" HorizontalOptions="Fill">
+
+                <!-- Status / LEDs -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="STATUS" Style="{StaticResource CardTitle}" />
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Border Grid.Column="0" WidthRequest="12" HeightRequest="12" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 6" VerticalOptions="Center"
+                                    BackgroundColor="{Binding Monitor.IsConnected, Converter={StaticResource BoolToColor}}" />
+                            <Label Grid.Column="1" Text="{Binding Monitor.StatusText}" Style="{StaticResource BodyText}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                                <Border WidthRequest="12" HeightRequest="12" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 6" VerticalOptions="Center"
+                                        BackgroundColor="{Binding Monitor.PowerLedOn, Converter={StaticResource BoolToColor}}" />
+                                <Label Text="Power LED" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <Border WidthRequest="12" HeightRequest="12" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 6" VerticalOptions="Center"
+                                        BackgroundColor="{Binding Monitor.HddLedOn, Converter={StaticResource BoolToColor}}" />
+                                <Label Text="HDD LED" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </Grid>
+
+                        <Label Text="{Binding Monitor.LastError}" TextColor="{StaticResource Danger}"
+                               IsVisible="{Binding Monitor.LastError, Converter={StaticResource StringNotEmpty}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Power / Reset / Reboot -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="CONTROL" Style="{StaticResource CardTitle}" />
+
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="Power short" Command="{Binding Monitor.PowerShortCommand}"
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,8,8" />
+                            <Button Text="Power long" Command="{Binding Monitor.PowerLongCommand}"
+                                    Style="{StaticResource WarningButton}" Margin="0,0,8,8" />
+                            <Button Text="Reset" Command="{Binding Monitor.ResetCommand}"
+                                    Style="{StaticResource WarningButton}" Margin="0,0,8,8" />
+                            <Button Text="Restart NanoKVM" Command="{Binding Monitor.RebootDeviceCommand}"
+                                    Style="{StaticResource DangerButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Input: text paste + keyboard shortcuts -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="INPUT" Style="{StaticResource CardTitle}" />
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Type text on the host" Style="{StaticResource BodyText}" />
+                            <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                                <Editor Text="{Binding PasteText}" AutoSize="TextChanges"
+                                        MinimumHeightRequest="80" Placeholder="Enter text …" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="Layout" Style="{StaticResource MetricCaption}" VerticalOptions="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource CardElevated}" Padding="12,2">
+                                <Picker ItemsSource="{Binding PasteLanguages}" SelectedItem="{Binding PasteLanguage}" />
+                            </Border>
+                            <Button Grid.Column="2" Text="Send" Command="{Binding PasteCommand}"
+                                    Style="{StaticResource PrimaryButton}" />
+                        </Grid>
+
+                        <Label Text="Keyboard shortcuts" Style="{StaticResource BodyText}" />
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="Ctrl+Alt+Del" Command="{Binding CtrlAltDelCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="F12" Command="{Binding F12Command}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Alt+F4" Command="{Binding AltF4Command}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Load saved" Command="{Binding LoadShortcutsCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center"
+                                    BindableLayout.ItemsSource="{Binding Shortcuts}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:NanoKvmShortcut">
+                                    <Button Text="{Binding Display}"
+                                            Style="{StaticResource NeutralButton}" Margin="0,0,8,8"
+                                            Command="{Binding Source={x:Reference Root}, Path=BindingContext.RunShortcutCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <Label Text="{Binding InputStatus}" TextColor="{StaticResource TextSecondary}"
+                               IsVisible="{Binding InputStatus, Converter={StaticResource StringNotEmpty}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Live input (WebSocket): mouse + keyboard -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="LIVE INPUT" Style="{StaticResource CardTitle}" VerticalOptions="Center" />
+                            <Border Grid.Column="1" WidthRequest="12" HeightRequest="12" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 6" VerticalOptions="Center"
+                                    BackgroundColor="{Binding InputConnected, Converter={StaticResource BoolToColor}}" />
+                        </Grid>
+
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="Connect input" Command="{Binding ConnectInputCommand}"
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,8,8" />
+                            <Button Text="Disconnect" Command="{Binding DisconnectInputCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Switch Grid.Column="0" IsToggled="{Binding RelativeMouseMode}" VerticalOptions="Center" />
+                            <Label Grid.Column="1" VerticalOptions="Center" Style="{StaticResource BodyText}"
+                                   Text="Touchpad mode (swipe = move, tap = click, hold = right-click)" />
+                        </Grid>
+
+                        <Label Text="Mouse" Style="{StaticResource BodyText}" />
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="Right-click" Command="{Binding RightClickCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Middle-click" Command="{Binding MiddleClickCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Scroll ▲" Command="{Binding ScrollUpCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Scroll ▼" Command="{Binding ScrollDownCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+
+                        <Label Text="Modifiers (apply to the next key)" Style="{StaticResource BodyText}" />
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <HorizontalStackLayout Spacing="6" Margin="0,0,16,8">
+                                <Switch IsToggled="{Binding CtrlActive}" />
+                                <Label Text="Ctrl" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="6" Margin="0,0,16,8">
+                                <Switch IsToggled="{Binding ShiftActive}" />
+                                <Label Text="Shift" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="6" Margin="0,0,16,8">
+                                <Switch IsToggled="{Binding AltActive}" />
+                                <Label Text="Alt" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="6" Margin="0,0,16,8">
+                                <Switch IsToggled="{Binding MetaActive}" />
+                                <Label Text="Meta" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </FlexLayout>
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Switch Grid.Column="0" IsToggled="{Binding GermanLayout}" VerticalOptions="Center" />
+                            <Label Grid.Column="1" VerticalOptions="Center" Style="{StaticResource BodyText}"
+                                   Text="German keyboard layout (QWERTZ) — set to match the host" />
+                        </Grid>
+
+                        <Label Text="Keyboard input (typing sends live to the host)" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <comp:HostKeyboardEntry x:Name="KeyboardEntry" Placeholder="Type here …"
+                                                    IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" />
+                        </Border>
+
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="Enter" Command="{Binding KeyEnterCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Backspace" Command="{Binding KeyBackspaceCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Tab" Command="{Binding KeyTabCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Esc" Command="{Binding KeyEscapeCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Del" Command="{Binding KeyDeleteCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="←" Command="{Binding KeyLeftCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="↑" Command="{Binding KeyUpCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="↓" Command="{Binding KeyDownCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="→" Command="{Binding KeyRightCommand}" Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Device info -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding Monitor.HasInfo}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="DEVICE" Style="{StaticResource CardTitle}" />
+
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                              ColumnSpacing="12" RowSpacing="6">
+                            <Label Grid.Row="0" Grid.Column="0" Text="IP" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding Monitor.Info.Ip}" Style="{StaticResource BodyText}" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="mDNS" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Monitor.Info.Mdns}" Style="{StaticResource BodyText}" />
+                            <Label Grid.Row="2" Grid.Column="0" Text="Image" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding Monitor.Info.Image}" Style="{StaticResource BodyText}" />
+                            <Label Grid.Row="3" Grid.Column="0" Text="App" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="3" Grid.Column="1" Text="{Binding Monitor.Info.Application}" Style="{StaticResource BodyText}" />
+                            <Label Grid.Row="4" Grid.Column="0" Text="Device-Key" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="4" Grid.Column="1" Text="{Binding Monitor.Info.DeviceKey}" Style="{StaticResource BodyText}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- HDMI (PCIe variant only) -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding Monitor.HasHdmi}">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="HDMI" Style="{StaticResource CardTitle}" />
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="6">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Signal" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource BodyText}"
+                                   Text="{Binding Monitor.Hdmi.StateText}" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="Resolution" Style="{StaticResource MetricCaption}" />
+                            <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource BodyText}"
+                                   Text="{Binding Monitor.Hdmi.Resolution}" />
+                        </Grid>
+
+                        <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center">
+                            <Button Text="HDMI Reset" Command="{Binding Monitor.HdmiResetCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Enable" Command="{Binding Monitor.HdmiEnableCommand}"
+                                    Style="{StaticResource NeutralButton}" Margin="0,0,8,8" />
+                            <Button Text="Disable" Command="{Binding Monitor.HdmiDisableCommand}"
+                                    Style="{StaticResource WarningButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </RefreshView>
+        </Grid>
+</ContentPage>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ServerRemote.App.Views.NanoKvmSettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ServerRemote.App.ViewModels"
+    x:DataType="vm:NanoKvmSettingsViewModel"
+    Title="NanoKVM Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="700" HorizontalOptions="Fill">
+
+            <Label Text="NanoKVM Settings" Style="{StaticResource SectionTitle}" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+
+                    <Label Text="NANOKVM CONNECTION" Style="{StaticResource CardTitle}" />
+                    <Label Text="Credentials for the NanoKVM device. The app talks to it directly over the LAN via HTTP."
+                           Style="{StaticResource MetricCaption}" />
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Host / IP address" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding Host}" Placeholder="192.168.1.20 or nanokvm.local" Keyboard="Url" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Username" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding Username}" Placeholder="admin" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Password" Style="{StaticResource BodyText}" />
+                        <Border Style="{StaticResource CardElevated}" Padding="12,2">
+                            <Entry Text="{Binding Password}" Placeholder="Password" IsPassword="True" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Save" Command="{Binding SaveCommand}"
+                                Style="{StaticResource PrimaryButton}"
+                                MinimumHeightRequest="48" />
+                        <Button Text="Test login" Command="{Binding TestLoginCommand}"
+                                Style="{StaticResource NeutralButton}"
+                                MinimumHeightRequest="48"
+                                IsEnabled="{Binding NotBusy}" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="{StaticResource TextSecondary}"
+                           FontAttributes="Bold"
+                           IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmpty}}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="ServerRemote.App.Components.SectionHeader"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+    <Grid ColumnDefinitions="*,Auto" Padding="2,8,2,2">
+        <Label Grid.Column="0"
+               Text="{Binding Title, Source={x:Reference Root}}"
+               Style="{StaticResource SectionTitle}"
+               VerticalOptions="Center" />
+        <Button Grid.Column="1"
+                Text="{Binding ActionText, Source={x:Reference Root}}"
+                Command="{Binding ActionCommand, Source={x:Reference Root}}"
+                IsVisible="{Binding ActionText, Source={x:Reference Root}, Converter={StaticResource StringNotEmpty}}"
+                Style="{StaticResource NeutralButton}"
+                Padding="12,6"
+                MinimumHeightRequest="36"
+                FontSize="13" />
+    </Grid>
+</ContentView>

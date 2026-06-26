@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ServerRemote.App.MobileShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ServerRemote.App.Views"
+    Title="ServerRemote"
+    FlyoutBehavior="Flyout">
+
+    <FlyoutItem Title="Dashboard" Route="dashboard">
+        <ShellContent ContentTemplate="{DataTemplate views:DashboardPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Services" Route="services">
+        <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Storage" Route="storage">
+        <ShellContent ContentTemplate="{DataTemplate views:StoragePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Sensors" Route="sensors">
+        <ShellContent ContentTemplate="{DataTemplate views:SensorsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="NanoKVM" Route="nanokvm">
+        <ShellContent ContentTemplate="{DataTemplate views:NanoKvmPage}" />
+    </FlyoutItem>
+
+    <MenuItem Text="NanoKVM Settings" Clicked="OnNanoKvmSettingsClicked" />
+
+    <FlyoutItem Title="Settings" Route="settings">
+        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </FlyoutItem>
+
+</Shell>
